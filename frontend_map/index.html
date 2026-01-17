@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thủ Thiêm Garden 3D - Quản lý Căn hộ Thông minh</title>
+    <link rel="shortcut icon" href="favicon.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="fonts/icomoon/style.css" />
+    <link rel="stylesheet" href="fonts/flaticon/font/flaticon.css" />
+
+    <link rel="stylesheet" href="css/tiny-slider.css" />
+    <link rel="stylesheet" href="css/aos.css" />
+    <link rel="stylesheet" href="css/style.css" />
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
+
+    <style>
+        .section-3d-map {
+            padding: 50px 0;
+            background: #f8f9fa;
+        }
+        
+        /* Khung chứa bản đồ */
+        .map-container {
+            height: 600px; 
+            position: relative; 
+            overflow: hidden; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid #dee2e6;
+        }
+
+        #viewDiv {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+    </style>
+  </head>
+  <body>
+
+    <div class="site-mobile-menu site-navbar-target">
+      <div class="site-mobile-menu-header">
+        <div class="site-mobile-menu-close">
+          <span class="icofont-close js-menu-toggle"></span>
+        </div>
+      </div>
+      <div class="site-mobile-menu-body"></div>
+    </div>
+
+    <nav class="site-nav">
+      <div class="container">
+        <div class="menu-bg-wrap">
+          <div class="site-navigation">
+            <a href="index.html" class="logo m-0 float-start">TT Garden 3D</a>
+              <ul class="js-clone-nav d-none d-lg-flex align-items-center text-start site-menu float-end">
+                <li class="active"><a href="index.html">Trang chủ</a></li>
+                <li><a href="#section-3d-map">Mô hình 3D</a></li>
+                <li><a href="#properties-section">Danh sách Căn hộ</a></li>
+                <li><a href="contact.html">Liên hệ</a></li>
+                <li>
+                  <a href="#" class="btn btn-primary text-white px-3 py-2" data-bs-toggle="modal" data-bs-target="#loginModal" style="border-radius: 20px;">
+                    👤 Đăng nhập
+                    </a>
+                </li>
+              </ul>
+            <a href="#" class="burger light me-auto float-end mt-1 site-menu-toggle js-menu-toggle d-inline-block d-lg-none" data-toggle="collapse" data-target="#main-navbar">
+              <span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-slide">
+        <div class="img overlay" style="background-image: url('images/hero_bg_3.jpg')"></div>
+        <div class="img overlay" style="background-image: url('images/hero_bg_2.jpg')"></div>
+        <div class="img overlay" style="background-image: url('images/hero_bg_1.jpg')"></div>
+      </div>
+      <div class="container">
+        <div class="row justify-content-center align-items-center">
+          <div class="col-lg-9 text-center">
+            <h1 class="heading" data-aos="fade-up">Thủ Thiêm Garden<br>Nơi cuộc sống thăng hoa</h1>
+            <p data-aos="fade-up" data-aos-delay="200" class="text-white">Trải nghiệm công nghệ xem nhà 3D Digital Twin đầu tiên tại khu vực</p>
+            <p data-aos="fade-up" data-aos-delay="300"><a href="#section-3d-map" class="btn btn-primary">Khám phá Ngay</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="features-1">
+      <div class="container">
+        <div class="row">
+          <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+            <div class="box-feature">
+              <span class="flaticon-house"></span>
+              <h3 class="mb-3">Căn hộ Thông minh</h3>
+              <p>Thiết kế hiện đại, tối ưu diện tích.</p>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+            <div class="box-feature">
+              <span class="flaticon-building"></span>
+              <h3 class="mb-3">Vị trí Vàng</h3>
+              <p>Trung tâm kết nối khu Đông Sài Gòn.</p>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="500">
+            <div class="box-feature">
+              <span class="flaticon-house-3"></span>
+              <h3 class="mb-3">An ninh 24/7</h3>
+              <p>Hệ thống bảo vệ đa lớp an toàn tuyệt đối.</p>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="600">
+            <div class="box-feature">
+              <span class="flaticon-house-1"></span>
+              <h3 class="mb-3">Hồ bơi Tràn bờ</h3>
+              <p>Thư giãn đỉnh cao với view thành phố.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-3d-map" id="section-3d-map" style="padding: 0; background: #fff;">
+        
+        <div class="map-container" style="width: 100%; height: 85vh; position: relative; border-bottom: 5px solid #005555;">
+            <div id="viewDiv" style="width: 100%; height: 100%;"></div>
+            
+            <div style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.8); padding:10px; border-radius:4px; font-size:12px; z-index:2;">
+                <i class="flaticon-3d-cube"></i> Giữ chuột phải để xoay 3D
+            </div>
+        </div>
+
+<div class="search-bar-container" style="background: #f8f9fa; padding: 30px 0; border-bottom: 1px solid #ddd;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <form class="row g-3 align-items-end p-4 bg-white shadow-sm rounded">
+                    <div class="col-12 mb-3">
+                        <h5 class="text-primary font-weight-bold"><i class="icon-search"></i> Tìm kiếm Căn hộ</h5>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Block</label>
+                        <select id="selBlock" class="form-select">
+                            <option value="All">Tất cả Block</option>
+                            <option value="A">Block A</option>
+                            <option value="B">Block B</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Tầng</label>
+                        <select id="selFloor" class="form-select">
+                            <option value="All">Tất cả tầng</option>
+                            <option value="1">Tầng 1</option>
+                            <option value="2">Tầng 2</option>
+                            <option value="3">Tầng 3</option>
+                            <option value="4">Tầng 4</option>
+                            <option value="5">Tầng 5</option>
+                            <option value="6">Tầng 6</option>
+                            <option value="7">Tầng 7</option>
+                            <option value="8">Tầng 8</option>
+                            <option value="9">Tầng 9</option>
+                            <option value="10">Tầng 10</option>
+                            <option value="11">Tầng 11</option>
+                            <option value="12">Tầng 12</option>
+                            <option value="14">Tầng 14</option>
+                            <option value="15">Tầng 15</option>
+                            <option value="16">Tầng 16</option>
+                            <option value="17">Tầng 17</option>
+                            <option value="18">Tầng 18</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Loại căn hộ</label>
+                        <select id="selType" class="form-select">
+                            <option value="All">Tất cả</option>
+                            <option value="1">1 Phòng ngủ</option>
+                            <option value="2">2 Phòng ngủ</option>
+                            <option value="3">3 Phòng ngủ</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Tình trạng</label>
+                        <select id="selStatus" class="form-select">
+                            <option value="All">Tất cả</option>
+                            <option value="0">🟢 Còn trống</option>
+                            <option value="1">🔴 Đã thuê</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                    <button type="button" id="btnFilter" class="btn btn-primary w-100 fw-bold" onclick="window.applyFilter()">
+                          LỌC KẾT QUẢ
+                    </button>
+                    </div>
+                    
+                    <div class="col-12 text-center mt-2">
+                        <small id="resCount" class="text-muted fst-italic">Vui lòng chọn tiêu chí và bấm Lọc...</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="section" id="properties-section">
+      <div class="container">
+        <div class="row mb-5 align-items-center">
+          <div class="col-lg-6">
+            <h2 class="font-weight-bold text-primary heading">Kết quả Tìm kiếm</h2>
+          </div>
+          <div class="col-lg-6 text-lg-end">
+            <p>Danh sách chi tiết các căn hộ phù hợp</p>
+          </div>
+        </div>
+        
+        <div class="row" id="resultList">
+            <div class="col-12 text-center text-muted py-5">
+                <h5>Vui lòng chọn tiêu chí và bấm "Lọc kết quả" để xem danh sách.</h5>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-4">
+            <div class="widget">
+              <h3>Liên hệ BQL</h3>
+              <address>Đường Liên Phường, P. Phước Long B, TP. Thủ Đức</address>
+              <ul class="list-unstyled links">
+                <li><a href="tel://11234567890">+84 909 123 456</a></li>
+                <li><a href="mailto:info@thuthiemgarden.com">info@thuthiemgarden.com</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="widget">
+              <h3>Về Dự án</h3>
+              <ul class="list-unstyled float-start links">
+                <li><a href="#">Tổng quan</a></li>
+                <li><a href="#">Vị trí</a></li>
+                <li><a href="#">Tiện ích</a></li>
+                <li><a href="#">Chính sách</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-4">
+             <div class="widget">
+                <h3>Kết nối</h3>
+                <ul class="list-unstyled social">
+                    <li><a href="#"><span class="icon-facebook"></span></a></li>
+                    <li><a href="#"><span class="icon-twitter"></span></a></li>
+                    <li><a href="#"><span class="icon-instagram"></span></a></li>
+                </ul>
+             </div>
+          </div>
+        </div>
+        <div class="row mt-5">
+          <div class="col-12 text-center">
+            <p>Copyright &copy; 2024 Thủ Thiêm Garden 3D Project.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+          <div class="modal-header border-0">
+            <h5 class="modal-title font-weight-bold mx-auto text-primary">Đăng Nhập Hệ Thống</h5>
+          </div>
+          <div class="modal-body">
+            <form id="loginForm">
+              <div class="mb-3">
+                <input type="text" class="form-control" id="loginUser" placeholder="Tên đăng nhập" required>
+              </div>
+              <div class="mb-3">
+                <input type="password" class="form-control" id="loginPass" placeholder="Mật khẩu" required>
+              </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary font-weight-bold">Đăng nhập</button>
+                <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">Tôi là Khách vãng lai</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="apartmentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title font-weight-bold" id="modalTitle">Thông tin căn hộ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+                <div class="col-md-7">
+                    <div id="carouselApartment" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="modalCarouselInner">
+                            <div class="carousel-item active"><img src="images/img_1.jpg" class="d-block w-100" alt="..."></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <h3 class="text-primary font-weight-bold" id="modalPrice">...</h3>
+                    <p class="text-muted" id="modalCode">Mã căn: ...</p>
+                    <hr>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><strong>Diện tích:</strong> <span id="modalArea">...</span> m²</li>
+                        <li class="mb-2"><strong>Phòng ngủ:</strong> <span id="modalBeds">...</span> PN</li>
+                        <li class="mb-2"><strong>Hướng:</strong> <span id="modalDirection">Đông Nam</span></li>
+                        <li class="mb-2"><strong>Trạng thái:</strong> <span id="modalStatus">...</span></li>
+                    </ul>
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" id="btnContactFromModal">📞 LIÊN HỆ THUÊ NGAY</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="consultModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Liên hệ thuê căn hộ <span id="targetAptCode"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="consultForm">
+                        <input type="hidden" id="consultAptId">
+                        <div class="mb-3">
+                            <label>Họ tên của bạn</label>
+                            <input type="text" class="form-control" id="cName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Số điện thoại</label>
+                            <input type="tel" class="form-control" id="cPhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Email (nếu có)</label>
+                            <input type="email" class="form-control" id="cEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label>Ghi chú thêm</label>
+                            <textarea class="form-control" id="cNote" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Gửi thông tin</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/tiny-slider.js"></script>
+    <script src="js/aos.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/counter.js"></script>
+    <script src="js/custom.js"></script>
+
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <script type="module" src="./src/main.js"></script>
+
+    <script>
+        // ===========================================
+        // 1. XỬ LÝ ĐĂNG NHẬP (LOGIN)
+        // ===========================================
+        document.getElementById("loginForm").addEventListener("submit", async function(e){
+            e.preventDefault();
+            const u = document.getElementById("loginUser").value;
+            const p = document.getElementById("loginPass").value;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                
+                const data = await res.json();
+                
+                if(data.success) {
+                    localStorage.setItem('user_role', data.role);
+                    localStorage.setItem('user_name', data.name);
+                    localStorage.setItem('user_code', data.code);
+                    localStorage.setItem('user_username', u); // Lưu để dùng cho đổi pass
+                    if (data.res_id) localStorage.setItem('user_res_id', data.res_id);
+
+                    alert("Đăng nhập thành công! Xin chào " + data.name);
+                    
+                    if(data.role === 'admin') window.location.href = "admin.html";
+                    else if(data.role === 'resident') window.location.href = "resident.html";
+                    else location.reload(); 
+                } else {
+                    alert("❌ Lỗi: " + data.message);
+                }
+            } catch(err) { console.error(err); alert("Không kết nối được Server!"); }
+        });
+
+        // ===========================================
+        // 3. XỬ LÝ MODAL TƯ VẤN & GỬI FORM
+        // ===========================================
+// 1. Hàm mở Modal (Giữ nguyên logic gán ID)
+        window.openConsultModal = function(aptId, aptCode) {
+        // Gán ID và Mã căn vào thẻ ẩn để khi gửi biết là khách chọn căn nào
+        const idInput = document.getElementById('hdnAptId');
+        const codeLabel = document.getElementById('lblConsultCode');
+        
+        if(idInput) idInput.value = aptId;
+        if(codeLabel) codeLabel.innerText = aptCode;
+        
+        // Reset form
+        if(document.getElementById('txtCusName')) document.getElementById('txtCusName').value = "";
+        if(document.getElementById('txtCusPhone')) document.getElementById('txtCusPhone').value = "";
+        
+        // Mở Modal
+        const modalEl = document.getElementById('consultModal'); // Đảm bảo ID modal đúng là 'consultModal'
+        if(modalEl) {
+            const myModal = new bootstrap.Modal(modalEl);
+            myModal.show();
+        } else {
+            console.error("Không tìm thấy Modal có id='consultModal' trong HTML");
+        }
+    };
+
+    // 2. Hàm Gửi Dữ Liệu (QUAN TRỌNG: Gọi API mới)
+        async function submitConsultation() {
+        // Lấy dữ liệu từ các ô input (Đảm bảo ID trong HTML khớp với các dòng này)
+        const payload = {
+            apt_id: document.getElementById('hdnAptId').value,
+            name: document.getElementById('txtCusName').value,
+            phone: document.getElementById('txtCusPhone').value,
+            email: document.getElementById('txtCusEmail').value || "", // Email có thể để trống
+            note: document.getElementById('txtCusNote') ? document.getElementById('txtCusNote').value : ""
+        };
+
+        if(!payload.name || !payload.phone) {
+            alert("Vui lòng điền Tên và Số điện thoại để chúng tôi liên hệ!");
+            return;
+        }
+
+        try {
+            // Gọi API /api/consultations mà ta vừa thêm vào server.js
+            const res = await fetch('http://localhost:3000/api/consultations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if(data.success) {
+                alert("✅ Gửi thành công! Bộ phận kinh doanh sẽ liên hệ bạn sớm.");
+                // Ẩn modal sau khi gửi xong
+                const modalEl = document.getElementById('consultModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if(modalInstance) modalInstance.hide();
+            } else {
+                alert("Lỗi: " + data.message);
+            }
+        } catch(e) { 
+            console.error(e);
+            alert("Lỗi kết nối Server! Hãy chắc chắn bạn đã chạy 'node server.js'"); 
+        }
+    }
+    </script>
+    
+  </body>
+</html>

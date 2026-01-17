@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - WebGIS</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .stat-card { border-left: 5px solid; }
+        .border-primary { border-color: #0d6efd !important; }
+        .border-success { border-color: #198754 !important; }
+        .border-warning { border-color: #ffc107 !important; }
+        .border-danger { border-color: #dc3545 !important; }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css" />
+        <script src="https://js.arcgis.com/4.29/"></script>
+
+        <script>
+        // Lệnh giúp các thư viện chạy độc lập, không gây xung đột.
+        if (window.define && window.define.amd) {
+            window.define.amd = null;
+        }
+        </script>
+
+        <style>
+            #adminViewDiv { width: 100%; height: 500px; border-radius: 8px; border: 1px solid #ccc; }
+        </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark px-4 mb-4">
+        <span class="navbar-brand mb-0 h1">🛡️ Admin Control Panel</span>
+        <button class="btn btn-outline-light btn-sm" onclick="logout()">Đăng xuất</button>
+    </nav>
+
+    <div class="container-fluid px-4">
+        
+        <div class="row mb-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">🗺️ Mô hình Quản lý 3D</h5>
+                    <div>
+                        <span class="badge bg-danger">🔴 Có sự cố</span>
+                        <span class="badge bg-success">🟢 Ổn định</span>
+                        <span class="badge bg-secondary">⚪ Còn trống</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="adminViewDiv"></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card border-primary shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted">Tổng Căn Hộ</h6>
+                        <h3 id="statTotal">...</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card border-success shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted">Căn Hộ Trống</h6>
+                        <h3 id="statEmpty">...</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card border-danger shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted">Yêu Cầu Mới</h6>
+                        <h3 id="statReq" class="text-danger fw-bold">...</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card border-warning shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted">Xe Chờ Duyệt</h6>
+                        <h3 id="statVeh" class="text-warning fw-bold">...</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">📋 Danh sách Yêu Cầu / Báo Sự Cố</span>
+    
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="toggleHistory" onchange="loadRequests()">
+                            <label class="form-check-label small" for="toggleHistory">Hiện lịch sử (Đã xong/Hủy)</label>
+                         </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Căn hộ</th>
+                                    <th>Nội dung</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestTable">
+                                <tr><td colspan="4" class="text-center">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white fw-bold text-danger">🚧 Duyệt Đăng Ký Xe</div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="vehicleList">
+                            <li class="list-group-item text-center">Đang tải...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-warning">
+                    <div class="card-header bg-warning bg-opacity-25 fw-bold text-dark">
+                        💎 Khách hàng tiềm năng (Đăng ký thuê)
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-striped mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Khách hàng</th>
+                                    <th>Liên hệ</th>
+                                    <th>Căn hộ</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="consultTable">
+                                <tr><td colspan="5" class="text-center">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4 mb-5">
+            <div class="col-12">
+                <div class="card shadow-sm border-success">
+                    <div class="card-header bg-success bg-opacity-25 fw-bold text-dark d-flex justify-content-between align-items-center">
+                        <span>👥 Danh sách Cư Dân (Đang cư trú)</span>
+                        
+                        <div class="d-flex gap-2">
+                            <input type="text" id="searchResInput" class="form-control form-control-sm" 
+                                   placeholder="🔍 Tìm tên, SĐT, căn hộ..." 
+                                   onkeyup="searchResident()" 
+                                   style="width: 250px;">
+                                   
+                            <button class="btn btn-sm btn-outline-dark" onclick="loadResidents()">🔄 Làm mới</button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Căn hộ</th>
+                                    <th>Họ tên</th>
+                                    <th>Liên hệ</th>
+                                    <th>Ngày vào ở</th>
+                                    <th>Tài khoản</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="residentTable">
+                                <tr><td colspan="6" class="text-center">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="contractModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">✍️ Tạo Hợp Đồng & Tài Khoản</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="con_consul_id">
+                        <input type="hidden" id="con_apt_id">
+                        
+                        <div class="alert alert-info small">
+                            Hệ thống sẽ tạo tài khoản cư dân và đổi trạng thái căn hộ <b id="con_apt_code">...</b> sang "Đã thuê".
+                        </div>
+
+                        <div class="mb-2"><label>Họ tên:</label><input type="text" id="con_name" class="form-control" readonly></div>
+                        <div class="mb-2"><label>Username:</label><input type="text" id="con_username" class="form-control"></div>
+                        <div class="mb-2"><label>Password:</label><input type="text" id="con_password" class="form-control" value="123456"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary fw-bold" onclick="submitContract()">✅ KÝ HỢP ĐỒNG</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+    loadConsultations();
+
+        // Check quyền Admin
+        const role = localStorage.getItem('user_role');
+        if(role !== 'admin') {
+            alert("Bạn không có quyền truy cập trang này!");
+            window.location.href = "index.html";
+        }
+
+        // Init
+        loadStats();
+        loadRequests();
+        loadPendingVehicles();
+        loadResidents();
+
+        // 1. Tải Thống kê
+        async function loadStats() {
+            const res = await fetch('http://localhost:3000/api/admin/stats');
+            const data = await res.json();
+            document.getElementById('statTotal').innerText = data.total_apts;
+            document.getElementById('statEmpty').innerText = data.empty_apts;
+            document.getElementById('statReq').innerText = data.pending_requests;
+            document.getElementById('statVeh').innerText = data.pending_vehicles;
+        }
+
+        // 2. Tải Danh sách Yêu cầu
+        async function loadRequests() {
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/requests');
+                const data = await res.json();
+                const tbody = document.getElementById('requestTable');
+                const showHistory = document.getElementById('toggleHistory').checked; // Xem có đang bật lịch sử không
+
+                tbody.innerHTML = "";
+
+                // Lọc dữ liệu
+                const filteredData = data.filter(req => {
+                    // Nếu bật Lịch sử: Hiện tất cả
+                    if (showHistory) return true;
+                    // Nếu tắt Lịch sử: Chỉ hiện Mới (New) hoặc Đang xử lý (Processing)
+                    return req.status === 'New' || req.status === 'Processing';
+                });
+
+                if (filteredData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">Không có yêu cầu nào cần xử lý.</td></tr>`;
+                    return;
+                }
+
+                filteredData.forEach(req => {
+                    let badge = '';
+                    let actions = '';
+
+                    // Logic hiển thị trạng thái
+                    if(req.status === 'New') {
+                        badge = '<span class="badge bg-danger">Mới</span>';
+                        actions = `
+                            <button class="btn btn-sm btn-primary" onclick="updateRequest(${req.request_id}, 'Processing', ${req.item_id})">🛠 Xử lý</button>
+                            <button class="btn btn-sm btn-success" onclick="updateRequest(${req.request_id}, 'Done', ${req.item_id})">✅ Xong</button>
+                        `;
+                    } else if (req.status === 'Processing') {
+                        badge = '<span class="badge bg-warning text-dark">Đang sửa</span>';
+                        actions = `
+                            <button class="btn btn-sm btn-success" onclick="updateRequest(${req.request_id}, 'Done', ${req.item_id})">✅ Hoàn tất</button>
+                        `;
+                    } else if (req.status === 'Done') {
+                        badge = '<span class="badge bg-success">Hoàn thành</span>';
+                    } else {
+                        badge = '<span class="badge bg-secondary">Đã hủy</span>';
+                    }
+
+                    // [QUAN TRỌNG] Thêm sự kiện onclick="flyToApartment(...)" vào badge căn hộ
+                    // Thêm style cursor:pointer để người dùng biết là bấm được
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>
+                                <span class="badge bg-primary" 
+                                      style="cursor: pointer; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" 
+                                      onclick="window.flyToApartment('${req.apt_code}')" 
+                                      title="Click để xem vị trí trên bản đồ">
+                                    📍 ${req.apt_code}
+                                </span>
+                            </td>
+                            <td>${req.content}</td>
+                            <td>${badge}</td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        // 3. Tải Xe chờ duyệt
+        async function loadPendingVehicles() {
+            const res = await fetch('http://localhost:3000/api/admin/vehicles-pending');
+            const data = await res.json();
+            const ul = document.getElementById('vehicleList');
+            ul.innerHTML = "";
+
+            if(data.length === 0) {
+                ul.innerHTML = "<li class='list-group-item text-center text-muted'>Không có hồ sơ chờ duyệt</li>";
+                return;
+            }
+
+            data.forEach(v => {
+                let typeText = v.status === 'Pending' ? 'Xin Đăng Ký' : 'Xin Hủy';
+                let typeClass = v.status === 'Pending' ? 'text-primary' : 'text-danger';
+                
+                ul.innerHTML += `
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>${v.license_plate}</strong>
+                            <span class="${typeClass} small fw-bold">${typeText}</span>
+                        </div>
+                        <div class="small text-muted mb-2">Căn hộ: ${v.apt_code} | Loại: ${v.type}</div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success flex-grow-1" onclick="approveVehicle(${v.vehicle_id}, 'Approve')">Chấp thuận</button>
+                            <button class="btn btn-sm btn-outline-danger flex-grow-1" onclick="approveVehicle(${v.vehicle_id}, 'Reject')">Từ chối</button>
+                        </div>
+                    </li>
+                `;
+            });
+        }
+        // Tải danh sách khách
+        async function loadConsultations() {
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/consultations');
+                const data = await res.json();
+                const tbody = document.getElementById('consultTable');
+                tbody.innerHTML = "";
+
+                if(data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Chưa có khách đăng ký.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(c => {
+                    // Chỉ hiện khách mới (chưa ký HĐ)
+                    if(c.status === 'New') {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td class="small text-muted">${new Date(c.created_at).toLocaleString('vi-VN')}</td>
+                                <td class="fw-bold">${c.customer_name}</td>
+                                <td>${c.phone}<br><small>${c.email}</small></td>
+                                <td>
+                                    <span class="badge bg-warning text-dark pointer-zoom" onclick="window.flyToApartment('${c.apt_code}')" style="cursor:pointer">
+                                        ${c.apt_code}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" 
+                                        onclick="openContractModal(${c.consul_id}, ${c.apt_id}, '${c.apt_code}', '${c.customer_name}', '${c.phone}', '${c.email}')">
+                                        ✍️ Chốt đơn
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+            } catch(e) { console.error(e); }
+        }
+        // 1. Tải danh sách cư dân
+        async function loadResidents() {
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/residents');
+                const data = await res.json();
+                const tbody = document.getElementById('residentTable');
+                tbody.innerHTML = "";
+
+                if(data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Chung cư đang trống, chưa có ai ở.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(r => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>
+                                <span class="badge bg-success pointer-zoom" onclick="window.flyToApartment('${r.apt_code}')">
+                                    ${r.apt_code}
+                                </span>
+                            </td>
+                            <td class="fw-bold">${r.full_name}</td>
+                            <td>${r.phone}<br><small class="text-muted">${r.email}</small></td>
+                            <td>${new Date(r.start_date).toLocaleDateString('vi-VN')}</td>
+                            <td><code>${r.username || 'Chưa có'}</code></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="processMoveOut(${r.res_id}, '${r.apt_code}', '${r.full_name}')">
+                                    🚪 Trả phòng
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="resetPass(${r.res_id}, '${r.full_name}')">
+                                    🔑 Reset Pass
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        // 2. Xử lý Trả phòng
+        async function processMoveOut(resId, aptCode, name) {
+            const confirmMsg = `⚠️ CẢNH BÁO QUAN TRỌNG:\n\nBạn có chắc chắn muốn làm thủ tục TRẢ PHÒNG cho cư dân [${name}] tại căn [${aptCode}]?\n\n- Hợp đồng sẽ kết thúc.\n- Tài khoản App sẽ bị khóa.\n- Căn hộ sẽ chuyển về trạng thái TRỐNG (Màu xám).`;
+            
+            if(!confirm(confirmMsg)) return;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/move-out', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ res_id: resId, apt_code: aptCode })
+                });
+                const data = await res.json();
+
+                if(data.success) {
+                    alert(data.message);
+                    
+                    // Reload lại toàn bộ hệ thống
+                    loadResidents();     // Cập nhật bảng cư dân
+                    loadStats();         // Cập nhật số liệu căn trống
+                    if(window.refresh3DMap) window.refresh3DMap(); // Map chuyển từ Xanh -> Xám ngay lập tức
+                } else {
+                    alert("Lỗi: " + data.message);
+                }
+            } catch(e) { alert("Lỗi kết nối server"); }
+        }
+
+        // Mở Modal Chốt đơn
+        window.openContractModal = function(consulId, aptId, aptCode, name, phone, email) {
+            document.getElementById('con_consul_id').value = consulId;
+            document.getElementById('con_apt_id').value = aptId;
+            document.getElementById('con_apt_code').innerText = aptCode;
+            document.getElementById('con_name').value = name;
+            
+            // Gợi ý username: user_sđt
+            document.getElementById('con_username').value = "user_" + phone;
+            
+            new bootstrap.Modal(document.getElementById('contractModal')).show();
+        };
+
+        // Gửi lệnh Tạo Hợp Đồng
+        async function submitContract() {
+            if(!confirm("Xác nhận ký hợp đồng?")) return;
+
+            const payload = {
+                consul_id: document.getElementById('con_consul_id').value,
+                apt_id: document.getElementById('con_apt_id').value,
+                full_name: document.getElementById('con_name').value,
+                // Lấy SĐT từ username (cắt bỏ user_) hoặc lấy từ data ẩn nếu cần kỹ hơn
+                phone: document.getElementById('con_username').value.replace('user_', ''), 
+                email: "", 
+                username: document.getElementById('con_username').value,
+                password: document.getElementById('con_password').value
+            };
+
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/create-contract', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    alert(data.message);
+                    if (document.activeElement) document.activeElement.blur();
+                    bootstrap.Modal.getInstance(document.getElementById('contractModal')).hide();
+                    
+                    // Reload lại dữ liệu
+                    loadConsultations(); 
+                    loadStats();         
+                    if(window.refresh3DMap) window.refresh3DMap(); // Cập nhật màu xanh cho Map
+                } else {
+                    alert("Lỗi: " + data.message);
+                }
+            } catch(e) { alert("Lỗi Server"); }
+        }
+        //Xử lý Reset Password
+        async function resetPass(resId, name) {
+        if(!confirm(`Bạn muốn đặt lại mật khẩu cho cư dân [${name}] về mặc định là 123456?`)) return;
+}
+        // --- TÍNH NĂNG TÌM KIẾM CƯ DÂN (LIVE SEARCH) ---
+        function searchResident() {
+            // 1. Lấy từ khóa người dùng nhập vào (chuyển về chữ thường)
+            let input = document.getElementById('searchResInput');
+            let filter = input.value.toLowerCase();
+            
+            // 2. Lấy bảng và các dòng dữ liệu
+            let table = document.getElementById('residentTable');
+            let tr = table.getElementsByTagName('tr');
+
+            // 3. Duyệt qua từng dòng để kiểm tra
+            for (let i = 0; i < tr.length; i++) {
+                // Bỏ qua dòng thông báo "Đang tải..." nếu có
+                if(tr[i].getElementsByTagName('td').length < 2) continue;
+
+                // Lấy nội dung các cột quan trọng: Căn hộ (0), Tên (1), SĐT (2)
+                let tdApt = tr[i].getElementsByTagName('td')[0];
+                let tdName = tr[i].getElementsByTagName('td')[1];
+                let tdPhone = tr[i].getElementsByTagName('td')[2];
+
+                if (tdApt && tdName && tdPhone) {
+                    let txtApt = tdApt.textContent || tdApt.innerText;
+                    let txtName = tdName.textContent || tdName.innerText;
+                    let txtPhone = tdPhone.textContent || tdPhone.innerText;
+
+                    // Kiểm tra xem từ khóa có nằm trong Tên HOẶC SĐT HOẶC Mã căn không
+                    if (txtApt.toLowerCase().indexOf(filter) > -1 || 
+                        txtName.toLowerCase().indexOf(filter) > -1 || 
+                        txtPhone.toLowerCase().indexOf(filter) > -1) {
+                        
+                        tr[i].style.display = ""; // Có chứa từ khóa -> Hiện
+                    } else {
+                        tr[i].style.display = "none"; // Không chứa -> Ẩn
+                    }
+                }
+            }
+        }
+        // --- CÁC HÀM HÀNH ĐỘNG ---
+
+        // Xử lý Yêu cầu
+        async function updateRequest(reqId, status, itemId) {
+            if(!confirm("Xác nhận cập nhật trạng thái?")) return;
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/update-request-status', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ request_id: reqId, status: status, item_id: itemId })
+                });
+                
+                // 1. Tải lại bảng danh sách
+                loadRequests(); 
+                
+                // 2. Tải lại thống kê
+                loadStats();    
+
+                // 3. [MỚI] Tải lại màu sắc Bản đồ ngay lập tức
+                if (window.refresh3DMap) {
+                    window.refresh3DMap(); 
+                }
+
+            } catch(e) { alert("Lỗi kết nối"); }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+    </script>
+<script type="module" src="./src/admin_map.js"></script>
+</body>
+</html>

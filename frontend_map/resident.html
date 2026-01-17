@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Cổng Cư Dân Online</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <style>
+        body { background: #f0f2f5; padding-bottom: 50px; }
+        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px; margin-bottom: 20px; }
+        .card-header { background: #fff; border-bottom: 1px solid #eee; font-weight: bold; color: #005555; }
+        .cursor-pointer { cursor: pointer; color: #0d6efd; text-decoration: underline; }
+        .cursor-pointer:hover { color: #0a58ca; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary px-4 mb-4">
+        <span class="navbar-brand mb-0 h1">🏡 Cổng Cư Dân - Thủ Thiêm Garden</span>
+        <div>
+            <button class="btn btn-outline-light btn-sm me-2" onclick="openChangePassModal()">🔑 Đổi mật khẩu</button>
+            <button class="btn btn-light btn-sm" onclick="logout()">Đăng xuất</button>
+        </div>
+    </nav>
+
+    <div class="modal fade" id="changePassModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">Đổi mật khẩu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePassForm">
+                        <div class="mb-2">
+                            <label>Mật khẩu cũ</label>
+                            <input type="password" class="form-control" id="oldPass" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Mật khẩu mới</label>
+                            <input type="password" class="form-control" id="newPass" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Xác nhận</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card p-4 bg-white">
+                    <h4>Xin chào, <span id="userName" class="text-primary">...</span> 👋</h4>
+                    <p class="mb-0">Căn hộ của bạn: <strong id="userCode" class="badge bg-warning text-dark fs-6">...</strong></p>
+                </div>
+            </div>
+        </div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-white text-primary fw-bold border-bottom">🧾 Hóa Đơn Của Tôi</div>
+            <div class="card-body">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tháng</th>
+                            <th>Số tiền (VNĐ)</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceList">
+                        <tr><td colspan="3">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-white text-dark fw-bold border-bottom">🛋️ Nội thất & Tài sản Bàn giao</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="furnitureList">
+                     <li class="list-group-item text-center text-muted py-3">Đang tải...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom">
+                <span class="fw-bold text-dark">🚗 Phương Tiện Đăng Ký</span>
+                <button class="btn btn-sm btn-success" onclick="openRegVehicleModal()">+ Đăng ký xe</button>
+            </div>
+            <ul class="list-group list-group-flush" id="vehicleList">
+                <li class="list-group-item text-center text-muted py-3">Đang tải...</li>
+            </ul>
+            <div class="card-footer bg-light text-muted small fst-italic">
+                *Quy định: Tối đa 1 Ô tô & 3 Xe máy / Căn hộ
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-lg-6 mb-4">
+
+        <div class="card mb-4 shadow-sm border-0">
+            <div class="card-header bg-white text-danger fw-bold border-bottom">🔧 Báo Sự Cố / Yêu Cầu</div>
+            <div class="card-body">
+                <form id="requestForm">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="reqContent" rows="4" placeholder="Mô tả chi tiết vấn đề của bạn (VD: Vòi nước bị rỉ...)" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">Gửi Yêu Cầu Hỗ Trợ</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0" style="min-height: 300px;">
+            <div class="card-header bg-white text-dark fw-bold border-bottom">🕒 Lịch sử yêu cầu</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush" id="requestHistoryList">
+                    <li class="list-group-item text-center text-muted py-3">Chưa có yêu cầu nào</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="regVehicleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Đăng ký gửi xe mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="regVehicleForm">
+                    <div class="mb-3">
+                        <label class="form-label">Loại xe</label>
+                        <select class="form-select" id="vehType">
+                            <option value="Motorbike">Xe máy (Motorbike)</option>
+                            <option value="Car">Ô tô (Car)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Biển số xe</label>
+                        <input type="text" class="form-control" id="vehPlate" placeholder="VD: 59-X1 999.99" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Xác nhận Đăng ký</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+        <div class="text-center mt-3">
+            <a href="index.html" class="text-decoration-none text-secondary">← Quay lại Bản đồ 3D</a>
+        </div>
+    </div>
+
+    <div class="modal fade" id="invoiceDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Chi tiết sử dụng dịch vụ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <thead><tr><th>Dịch vụ</th><th>Sử dụng</th><th>Thành tiền</th></tr></thead>
+                        <tbody id="invoiceDetailBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/bootstrap.bundle.min.js"></script> <script>
+        // 1. Khởi tạo
+        const name = localStorage.getItem('user_name');
+        const code = localStorage.getItem('user_code');
+        const resId = localStorage.getItem('user_res_id');
+
+        if(!name) {
+            window.location.href = "index.html";
+        } else {
+            document.getElementById("userName").innerText = name;
+            document.getElementById("userCode").innerText = code || "Chưa cập nhật";
+            
+            // Gọi các hàm tải dữ liệu
+            if(resId) {
+                loadInvoices(resId);
+                loadVehicles(resId);
+                loadRequestHistory(resId);
+                loadFurniture(resId);
+            }
+        }
+
+        // 2. Tải hóa đơn (Đã sửa lỗi nút Xem)
+        async function loadInvoices(id) {
+            try {
+                const res = await fetch(`http://localhost:3000/api/resident/invoices/${id}`);
+                const data = await res.json();
+                const tbody = document.getElementById("invoiceList");
+                tbody.innerHTML = "";
+
+                if(data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='3'>Không có hóa đơn.</td></tr>";
+                    return;
+                }
+
+                data.forEach(inv => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${inv.month}</td>
+                        <td class="fw-bold">
+                            ${parseInt(inv.total_amount).toLocaleString('vi-VN')} 
+                            <span class="cursor-pointer small ms-1" onclick="showInvoiceDetail(${inv.invoice_id})">(Xem)</span>
+                        </td>
+                        <td>
+                            ${inv.is_paid 
+                                ? '<span class="badge bg-success">Đã trả</span>' 
+                                : '<span class="badge bg-danger">Chưa trả</span>'}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(err) { console.error(err); }
+        }
+
+        // 3. Xem chi tiết hóa đơn (Popup)
+        window.showInvoiceDetail = async function(invId) {
+            try {
+                const res = await fetch(`http://localhost:3000/api/resident/invoice-details/${invId}`);
+                const data = await res.json();
+                const tbody = document.getElementById("invoiceDetailBody");
+                tbody.innerHTML = "";
+                
+                if(data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='3'>Chưa có chi tiết.</td></tr>";
+                } else {
+                    data.forEach(d => {
+                        tbody.innerHTML += `<tr>
+                            <td>${d.name}</td>
+                            <td>${d.usage_amount}</td>
+                            <td>${parseInt(d.sub_total).toLocaleString()}</td>
+                        </tr>`;
+                    });
+                }
+                
+                // Hiển thị Modal (Bootstrap 5)
+                var myModal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
+                myModal.show();
+            } catch(e) { alert("Lỗi tải chi tiết!"); }
+        }
+
+        // 4. Tải Xe cộ
+async function loadVehicles(id) {
+    try {
+        const res = await fetch(`http://localhost:3000/api/resident/vehicles/${id}`);
+        const data = await res.json();
+        const ul = document.getElementById("vehicleList");
+        ul.innerHTML = "";
+        
+        if(data.length === 0) {
+            ul.innerHTML = "<li class='list-group-item text-muted text-center'>Chưa đăng ký xe</li>";
+            return;
+        }
+        
+        data.forEach(v => {
+            let icon = v.type === 'Car' ? '🚙' : '🛵';
+            let badgeClass = 'bg-secondary';
+            let statusText = 'Không rõ';
+            let actionBtn = '';
+            let locationInfo = '';
+
+            if (v.status === 'Active') {
+                badgeClass = 'bg-success';
+                statusText = 'Đang sử dụng';
+                // Nút yêu cầu hủy
+                actionBtn = `<button class="btn btn-sm btn-outline-danger mt-1" onclick="cancelVehicle(${v.vehicle_id})">Yêu cầu hủy</button>`;
+                
+                if(v.type === 'Car' && v.slot_code) {
+                    locationInfo = `<div class="small text-success mt-1"><i class="bi bi-geo-alt-fill"></i> Vị trí: <strong>${v.slot_code}</strong> (${v.zone_name})</div>`;
+                } else if (v.type === 'Car' && !v.slot_code) {
+                    locationInfo = `<div class="small text-muted mt-1 fst-italic">Chưa xếp chỗ</div>`;
+                }
+
+            } else if (v.status === 'Pending') {
+                badgeClass = 'bg-warning text-dark';
+                statusText = 'Chờ duyệt';
+                // Nút hủy đăng ký ngay
+                actionBtn = `<button class="btn btn-sm btn-outline-secondary mt-1" onclick="cancelVehicle(${v.vehicle_id})">Hủy đăng ký</button>`;
+
+            } else if (v.status === 'Pending_Cancellation') {
+                badgeClass = 'bg-info text-dark';
+                statusText = 'Chờ xác nhận hủy';
+                // [LOGIC MỚI] Nút Khôi phục (Không hủy nữa)
+                actionBtn = `<button class="btn btn-sm btn-primary mt-1" onclick="undoCancelVehicle(${v.vehicle_id})">↩️ Giữ lại xe này</button>`;
+
+            } else if (v.status === 'Cancelled') {
+                badgeClass = 'bg-secondary';
+                statusText = 'Đã hủy';
+            }
+
+            ul.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
+                        <span>${icon} ${v.type}</span> <strong class="text-primary ms-1">${v.license_plate}</strong>
+                        ${locationInfo}
+                        <div class="mt-1">${actionBtn}</div>
+                    </div>
+                    <span class="badge ${badgeClass} rounded-pill mt-1">${statusText}</span>
+                </li>`;
+        });
+    } catch(e) { console.error(e); }
+}
+        // 5. Gửi yêu cầu
+        document.getElementById("requestForm").addEventListener("submit", async function(e){
+            e.preventDefault();
+            const content = document.getElementById("reqContent").value;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/resident/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ res_id: resId, apt_code: code, content: content })
+                });
+                const result = await res.json();
+                
+                if(result.success) {
+                    alert("✅ Đã gửi yêu cầu!");
+                    document.getElementById("reqContent").value = "";
+                    loadRequestHistory(resId); // Tải lại danh sách ngay lập tức
+                } else {
+                    alert("❌ Lỗi: " + result.message);
+                }
+            } catch(err) { alert("Lỗi kết nối!"); }
+        });
+
+        // 6. Tải Lịch sử yêu cầu
+ async function loadRequestHistory(id) {
+    try {
+        const res = await fetch(`http://localhost:3000/api/resident/requests-history/${id}`);
+        const data = await res.json();
+        const ul = document.getElementById("requestHistoryList");
+        ul.innerHTML = "";
+
+        if(data.length === 0) {
+            ul.innerHTML = "<li class='list-group-item text-muted text-center'>Chưa có yêu cầu nào</li>";
+            return;
+        }
+
+        data.forEach(req => {
+            let badge = '';
+            let btnCancel = '';
+
+            if (req.status === 'New') {
+                badge = 'bg-primary';
+                // Chỉ hiện nút hủy nếu trạng thái là New
+                btnCancel = `<button class="btn btn-sm btn-link text-danger text-decoration-none p-0 ms-2" onclick="cancelRequest(${req.request_id})">(Hủy)</button>`;
+            } else if (req.status === 'Done') {
+                badge = 'bg-success';
+            } else if (req.status === 'Cancelled') {
+                badge = 'bg-secondary';
+            }
+
+            ul.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>${req.content} ${btnCancel}</span>
+                    <span class="badge ${badge} rounded-pill">${req.status}</span>
+                </li>
+            `;
+        });
+    } catch(e) {}
+}
+// 7. Tải danh sách nội thất
+async function loadFurniture(id) {
+    try {
+        // MẸO: Thêm ?t=${new Date().getTime()} để trình duyệt luôn tải dữ liệu mới nhất
+        const res = await fetch(`http://localhost:3000/api/resident/furniture/${id}?t=${new Date().getTime()}`);
+        const data = await res.json();
+        const ul = document.getElementById("furnitureList");
+        ul.innerHTML = "";
+
+        if(data.length === 0) {
+            ul.innerHTML = "<li class='list-group-item text-center'>Không có tài sản bàn giao</li>";
+            return;
+        }
+
+        data.forEach(item => {
+            let badgeClass = '';
+            let btnAction = '';
+            let safeName = item.name.replace(/'/g, "\\'"); // Xử lý tên có dấu nháy đơn
+
+            if(item.condition === 'Đang hoạt động') {
+                badgeClass = 'bg-success'; 
+                // Hiện nút báo hỏng
+                btnAction = `<button class="btn btn-sm btn-outline-danger ms-2" onclick="reportFurniture(${item.item_id}, '${safeName}')">⚠️ Báo hỏng</button>`;
+            } else {
+                badgeClass = 'bg-warning text-dark'; 
+                // Ẩn nút báo hỏng
+                btnAction = `<small class="text-muted ms-2 fst-italic">(Đã gửi yêu cầu)</small>`;
+            }
+
+            ul.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-bold">${item.name}</span>
+                        ${btnAction}
+                    </div>
+                    <span class="badge ${badgeClass} rounded-pill">${item.condition}</span>
+                </li>
+            `;
+        });
+    } catch(e) { console.error(e); }
+}
+
+// Hàm xử lý Khôi phục xe (Undo Cancel)
+async function undoCancelVehicle(vehId) {
+    try {
+        const res = await fetch('http://localhost:3000/api/resident/undo-cancel-vehicle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vehicle_id: vehId })
+        });
+        const result = await res.json();
+        alert(result.message);
+        loadVehicles(localStorage.getItem('user_res_id')); // Load lại danh sách
+    } catch(e) { alert("Lỗi kết nối!"); }
+}
+
+// Hàm Hủy Yêu cầu (Thêm reload nội thất)
+async function cancelRequest(reqId) {
+    if(!confirm("Hủy yêu cầu này?")) return;
+
+    try {
+        const res = await fetch('http://localhost:3000/api/resident/cancel-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request_id: reqId })
+        });
+        const result = await res.json();
+        
+        // [QUAN TRỌNG] Load lại cả lịch sử VÀ danh sách nội thất
+        // Để nút "Báo hỏng" hiện lại ngay lập tức
+        const resId = localStorage.getItem('user_res_id');
+        loadRequestHistory(resId); 
+        loadFurniture(resId); 
+
+    } catch(e) { alert("Lỗi kết nối!"); }
+}
+
+// 8. Hàm xử lý Báo hỏng
+async function reportFurniture(itemId, itemName) {
+    console.log("Đang báo hỏng:", itemId, itemName); // Check log xem tên đúng ko
+
+    const desc = prompt(`Mô tả tình trạng hư hỏng của "${itemName}":`, "Không hoạt động");
+    if(!desc) return; 
+
+    const resId = localStorage.getItem('user_res_id');
+    if(!resId) { alert("Lỗi: Không tìm thấy ID cư dân. Hãy đăng nhập lại."); return; }
+
+    try {
+        const res = await fetch('http://localhost:3000/api/resident/report-furniture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                res_id: resId, 
+                item_id: itemId,
+                item_name: itemName,
+                description: desc
+            })
+        });
+        const result = await res.json();
+        
+        if(result.success) {
+            alert("✅ Đã gửi báo cáo thành công!");
+            // Load lại cả 2 danh sách để đồng bộ
+            loadFurniture(resId); 
+            loadRequestHistory(resId); 
+        } else {
+            alert("❌ Lỗi từ Server: " + (result.message || "Không rõ nguyên nhân"));
+        }
+    } catch(e) { 
+        console.error(e);
+        alert("❌ Lỗi kết nối (Xem Console để biết chi tiết)!"); 
+    }
+}
+
+// --- CÁC HÀM XỬ LÝ SỰ KIỆN HỦY ---
+
+// Hàm Hủy Xe
+async function cancelVehicle(vehId) {
+    if(!confirm("Bạn có chắc chắn muốn hủy đăng ký xe này không?")) return;
+    
+    try {
+        const res = await fetch('http://localhost:3000/api/resident/cancel-vehicle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vehicle_id: vehId })
+        });
+        const result = await res.json();
+        alert(result.message);
+        loadVehicles(localStorage.getItem('user_res_id')); // Tải lại danh sách
+    } catch(e) { alert("Lỗi kết nối!"); }
+}
+
+// Hàm Hủy Yêu cầu
+async function cancelRequest(reqId) {
+    if(!confirm("Bạn có chắc chắn muốn hủy yêu cầu này không?")) return;
+
+    try {
+        const res = await fetch('http://localhost:3000/api/resident/cancel-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request_id: reqId })
+        });
+        const result = await res.json();
+        
+        if(result.success) {
+            // Không cần alert cũng được cho thao tác nhanh, hoặc dùng Toast
+            // alert("Đã hủy yêu cầu."); 
+            
+            const resId = localStorage.getItem('user_res_id');
+            
+            // [QUAN TRỌNG] Gọi lại cả 2 hàm để cập nhật giao diện ngay lập tức
+            await loadRequestHistory(resId); // Cập nhật list lịch sử (chuyển thành Cancelled)
+            await loadFurniture(resId);      // Cập nhật list đồ đạc (chuyển thành Đang hoạt động)
+            
+        } else {
+            alert("Lỗi: " + result.message);
+        }
+    } catch(e) { 
+        console.error(e);
+        alert("Lỗi kết nối Server!"); 
+    }
+}
+//  Mở Modal đăng ký
+        function openRegVehicleModal() {
+            new bootstrap.Modal(document.getElementById('regVehicleModal')).show();
+        }
+
+    // Xử lý sự kiện Submit Form Đăng ký xe
+        document.getElementById("regVehicleForm").addEventListener("submit", async function(e){
+            e.preventDefault();
+            const type = document.getElementById("vehType").value;
+            const plate = document.getElementById("vehPlate").value;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/resident/register-vehicle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ res_id: resId, type: type, license_plate: plate })
+                });
+                const result = await res.json();
+            
+                if(result.success) {
+                alert(result.message); // Báo thành công
+                    // Tắt modal (thủ công)
+                    const modalEl = document.getElementById('regVehicleModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance.hide();
+
+                    // Tải lại danh sách xe
+                    loadVehicles(resId);
+                } else {
+                    alert(result.message); // Báo lỗi (VD: Quá số lượng)
+                }
+            } catch(err) { alert("Lỗi kết nối Server!"); }
+        });
+
+        // 9. Đăng xuất
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+        // 10. Hàm mở Modal Đổi mật khẩu
+        function openChangePassModal() {
+            new bootstrap.Modal(document.getElementById('changePassModal')).show();
+        }
+
+        // 11. Xử lý sự kiện khi bấm nút "Xác nhận" đổi mật khẩu
+        document.getElementById("changePassForm").addEventListener("submit", async function(e){
+            e.preventDefault();
+            
+            const oldPass = document.getElementById("oldPass").value;
+            const newPass = document.getElementById("newPass").value;
+            
+            // Lấy username từ localStorage (Cần đảm bảo file index.html đã lưu cái này)
+            // Nếu chưa lưu thì mặc định thử lấy 'cudana' để test
+            const u = localStorage.getItem('user_username') || 'cudana'; 
+
+            try {
+                const res = await fetch('http://localhost:3000/api/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, oldPass: oldPass, newPass: newPass })
+                });
+                const result = await res.json();
+                
+                alert(result.message);
+                
+                if(result.success) {
+                    // Tắt modal sau khi thành công
+                    const modalEl = document.getElementById('changePassModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance.hide();
+                    
+                    // Reset form
+                    document.getElementById("changePassForm").reset();
+                }
+            } catch(err) { 
+                console.error(err);
+                alert("Lỗi kết nối Server!"); 
+            }
+        });
+    </script>
+</body>
+</html>
